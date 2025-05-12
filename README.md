@@ -51,7 +51,7 @@ Consulta a previsão do tempo para um CEP.
 **Requisição:**
 
 ```http
-POST /weather HTTP/1.1
+POST /cep HTTP/1.1
 Content-Type: application/json
 
 {
