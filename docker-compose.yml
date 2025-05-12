@@ -1,0 +1,40 @@
+services:
+  cep-input-service:
+    build:
+      context: ./cep-input-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
+      - WEATHER_SERVICE_URL=http://cep-weather-service:8081
+    depends_on:
+      - cep-weather-service
+      - otel-collector
+
+  cep-weather-service:
+    build:
+      context: ./cep-weather-service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - PORT=8081
+      - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
+      - FINDCEP_BASE_URL={SCHEME}://{CLIENT_ID}-{CLIENT_URL_HASH}.api.findcep.com #https://www.findcep.com/docs/index.html
+      - FINDCEP_REFER={FID} #https://www.findcep.com/docs/index.html
+      - WEATHER_API_KEY=YOUR WEATHER API KEY #https://openweathermap.org/api/one-call-3
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.97.0
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol/config.yaml
+    command: ["--config=/etc/otelcol/config.yaml"]
+    ports:
+      - "4317:4317"
+
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
